@@ -10,14 +10,16 @@ import numpy as np
 import pandas as pd 
 from sklearn.preprocessing import  MinMaxScaler 
 from keras.models import Sequential 
-from keras.layers import Dense , LSTM 
+from keras.layers import Dense , LSTM , Activation
 import matplotlib.pyplot as plt 
+import keras
 
 
 # ------------------------------------constans-----------------------------------------------------
-start_date = '2020-01-01'
+start_date = '2012-01-01'
 end_date   = '2021-05-30'
 DataSetFor = 'AAPL'
+Days_2_predicit = 30
 # =================================================================================================
 # Get  the stock qoute  
 df = web.DataReader( DataSetFor, data_source = 'yahoo' , start = start_date , end = end_date)
@@ -38,7 +40,7 @@ data = df.filter(['Close'])
 #Convert the dataframe to a numpy arrry 
 dataset = data.values
 # Get the number of rows to train the model 
-training_data_len = math.ceil( len(dataset) * .8 ) 
+training_data_len = math.ceil( len(dataset) * .85 ) 
 training_data_len 
 
 # Scale the data 
@@ -51,16 +53,16 @@ train_data = scaled_data[0:training_data_len, :]
 x_train = []
 y_train = []
 
-for i in range(60,len(train_data)):
-  x_train.append(train_data[i-60:i , 0])
+for i in range(Days_2_predicit,len(train_data)):
+  x_train.append(train_data[i-Days_2_predicit:i , 0])
   y_train.append(train_data[i,0])
-  if i<=61 :
-    print('x_train: ')
-    print(x_train)
-    print('------------------------------------------------------------------------')
-    print('y_train: ')
-    print(y_train)
-    print() 
+  # if i<=61 :
+  #   print('x_train: ')
+  #   print(x_train)
+  #   print('------------------------------------------------------------------------')
+  #   print('y_train: ')
+  #   print(y_train)
+  #   print() 
 
 
 #convert the x_trian,y_trian to numpy arrys 
@@ -73,23 +75,28 @@ x_train = np.reshape(x_train, (x_train.shape[0] , x_train.shape[1] ,1 ))
 model = Sequential()
 model.add(LSTM(50,return_sequences=True , input_shape= (x_train.shape[1],1))) 
 model.add(LSTM(50,return_sequences=False))
-model.add(Dense(25))  
-model.add(Dense(1))  
+model.add(Dense(25 ,kernel_initializer='uniform'))  
 
+model.add(Dense(1))  
+# creat optimizers
+
+opt = keras.optimizers.Adam(learning_rate=0.001)
+opt1 = keras.optimizers.Adagrad(learning_rate=0.001)
+opt2 = keras.optimizers.RMSprop()
 
 # compile the model 
-model.compile(optimizer='adam',loss='mean_squared_error' ) 
+model.compile(optimizer = opt2 ,loss='mean_squared_error' ) 
 # traine the model 
 model.fit(x_train , y_train ,  batch_size=1 , epochs= 1 )
 
 # Creat the testing data set 
 # Creat a new array containing scaled values from index 1543 to 2003 
-test_data = scaled_data[training_data_len-60 : , : ]
+test_data = scaled_data[training_data_len-Days_2_predicit : , : ]
 # creat the data sets x_test , y_test 
 x_test = [] 
 y_test = dataset[training_data_len : , :]
-for i in range(60 , len(test_data)): 
-    x_test.append(test_data[i-60:i, 0])  
+for i in range(Days_2_predicit , len(test_data)): 
+    x_test.append(test_data[i-Days_2_predicit:i, 0])  
 
 
 # Convert the data to a numpy array 
