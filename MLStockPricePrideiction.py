@@ -13,8 +13,14 @@ from keras.models import Sequential
 from keras.layers import Dense , LSTM 
 import matplotlib.pyplot as plt 
 
+
+# ------------------------------------constans-----------------------------------------------------
+start_date = '2020-01-01'
+end_date   = '2021-05-30'
+DataSetFor = 'AAPL'
+# =================================================================================================
 # Get  the stock qoute  
-df = web.DataReader('AAPL', data_source = 'yahoo' , start = '2020-01-01', end = '2021-05-30')
+df = web.DataReader( DataSetFor, data_source = 'yahoo' , start = start_date , end = end_date)
 # show ten data 
 datainfo = pd.DataFrame(df)
 datainfo.info()  
@@ -114,4 +120,5 @@ plt.ylabel('Close price USD($)' , fontsize = 18 )
 plt.plot(train["Close"])
 plt.plot(valid[['Close', 'Predictions']])
 plt.legend(['Train', 'Val', 'Predictions'])
-plt.show()
+plt.show() 
+
